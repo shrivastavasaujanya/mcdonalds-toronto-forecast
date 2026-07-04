@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>McDonald's Toronto Forecast</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:system-ui,sans-serif;background:#F4F6F8;padding:24px;color:#111}
+  h1{font-size:18px;font-weight:700;margin-bottom:2px}
+  .sub{font-size:12px;color:#888;margin-bottom:18px}
+  .stats{display:flex;gap:10px;margin-bottom:16px}
+  .stat{background:#fff;border-radius:10px;border:1px solid #eee;padding:12px 16px;flex:1}
+  .stat-v{font-size:22px;font-weight:700}
+  .stat-l{font-size:11px;color:#888;margin-top:2px}
+  .card{background:#fff;border-radius:12px;border:1px solid #eee;padding:20px;margin-bottom:14px}
+  .card h2{font-size:13px;font-weight:700;margin-bottom:14px}
+  .legend{display:flex;gap:14px;margin-top:10px;flex-wrap:wrap;font-size:11px;color:#555}
+  .dot{width:10px;height:10px;border-radius:50%;display:inline-block;margin-right:4px}
+  .explainer{display:none;background:#F8F9FA;border-radius:8px;padding:14px;margin-top:12px;font-size:12px}
+  .explainer.show{display:block}
+  .bar-row{display:flex;align-items:center;gap:8px;margin:5px 0}
+  .bar-label{min-width:90px;font-size:11px;color:#555}
+  .bar-track{flex:1;height:14px;background:#F0F0F0;border-radius:4px;overflow:hidden}
+  .bar-fill{height:100%;border-radius:4px;transition:width .3s}
+  .bar-val{font-size:11px;color:#333;min-width:38px;text-align:right;font-weight:600}
+  .ev-row{display:flex;gap:10px;align-items:center;padding:7px 0;border-bottom:1px solid #f0f0f0;font-size:12px}
+  .ev-date{color:#888;min-width:90px}
+  .ev-idx{margin-left:auto;font-weight:700}
+  select{font-size:12px;padding:4px 8px;border-radius:6px;border:1px solid #ddd;background:#fff;cursor:pointer}
+</style>
+</head>
+<body>
+<h1>🍔 McDonald's Toronto — 30-Day Demand Forecast</h1>
+<div class="sub">Generated June 27, 2026 · Demand index: 100 = average day · Click any bar to explain it</div>
+
+<div class="stats">
+  <div class="stat"><div class="stat-v" style="color:#E74C3C">156</div><div class="stat-l">Peak demand index</div></div>
+  <div class="stat"><div class="stat-v" style="color:#3498DB">146</div><div class="stat-l">Low demand index</div></div>
+  <div class="stat"><div class="stat-v">151</div><div class="stat-l">30-day average</div></div>
+  <div class="stat"><div class="stat-v" style="color:#E74C3C">30</div><div class="stat-l">High-demand days (≥130)</div></div>
+</div>
+
+<!-- Main forecast chart -->
+<div class="card">
+  <h2>📊 Daily Demand Index <span style="font-weight:400;color:#888;font-size:12px">— click a bar to see why</span></h2>
+  <canvas id="mainChart" height="260"></canvas>
+  <div class="legend">
+    <span><span class="dot" style="background:#E74C3C"></span>High (≥130)</span>
+    <span><span class="dot" style="background:#F39C12"></span>Elevated (110–129)</span>
+    <span><span class="dot" style="background:#3498DB"></span>Normal (&lt;110)</span>
+    <span><span class="dot" style="background:#BDC3C7"></span>Confidence range</span>
+    <span><span style="display:inline-block;width:10px;height:10px;border:2px solid #F1C40F;border-radius:2px;margin-right:4px"></span>Event day</span>
+    <span>⭐ = event marker</span>
+  </div>
+  <!-- Explainer panel (shown on bar click) -->
+  <div class="explainer" id="explainer">
+    <strong id="exp-title"></strong>
+    <div style="color:#888;font-size:11px;margin-bottom:10px" id="exp-sub"></div>
+    <div id="exp-bars"></div>
+  </div>
+</div>
+
+<!-- Component breakdown chart -->
+<div class="card">
+  <h2>🔍 What's driving demand each day?</h2>
+  <div style="margin-bottom:10px;font-size:12px;color:#555">Each segment shows how much that factor adds or subtracts from the baseline of 100.</div>
+  <canvas id="compChart" height="260"></canvas>
+  <div class="legend" style="margin-top:10px">
+    <span><span class="dot" style="background:#3498DB"></span>Trend</span>
+    <span><span class="dot" style="background:#2ECC71"></span>Day of week</span>
+    <span><span class="dot" style="background:#9B59B6"></span>Seasonality</span>
+    <span><span class="dot" style="background:#E67E22"></span>Weather</span>
+    <span><span class="dot" style="background:#E74C3C"></span>Events</span>
+  </div>
+</div>
+
+<!-- Events table -->
+<div class="card">
+  <h2>📅 Key Toronto Events This Period</h2>
+  <div class="event-row">
+      <span class="ev-date">2026-06-29</span>
+      <span class="ev-name">Raptors Play-In Home Game 1</span>
+      <span class="ev-idx" style="color:#E74C3C">153</span>
+    </div><div class="event-row">
+      <span class="ev-date">2026-06-30</span>
+      <span class="ev-name">Raptors Play-In Home Game 2</span>
+      <span class="ev-idx" style="color:#E74C3C">154</span>
+    </div><div class="event-row">
+      <span class="ev-date">2026-07-01</span>
+      <span class="ev-name">Rhythms of Canada Festival</span>
+      <span class="ev-idx" style="color:#E74C3C">155</span>
+    </div><div class="event-row">
+      <span class="ev-date">2026-07-02</span>
+      <span class="ev-name">FIFA World Cup Match - Toronto</span>
+      <span class="ev-idx" style="color:#E74C3C">156</span>
+    </div><div class="event-row">
+      <span class="ev-date">2026-07-03</span>
+      <span class="ev-name">Summerlicious Begins</span>
+      <span class="ev-idx" style="color:#E74C3C">156</span>
+    </div><div class="event-row">
+      <span class="ev-date">2026-07-04</span>
+      <span class="ev-name">Lionel Richie & Earth, Wind & Fire Concert - Scotiabank Arena</span>
+      <span class="ev-idx" style="color:#E74C3C">156</span>
+    </div><div class="event-row">
+      <span class="ev-date">2026-07-11</span>
+      <span class="ev-name">Festival of South Asia - Gerrard India Bazaar</span>
+      <span class="ev-idx" style="color:#E74C3C">151</span>
+    </div><div class="event-row">
+      <span class="ev-date">2026-07-12</span>
+      <span class="ev-name">Festival of South Asia Continues</span>
+      <span class="ev-idx" style="color:#E74C3C">151</span>
+    </div><div class="event-row">
+      <span class="ev-date">2026-07-17</span>
+      <span class="ev-name">Louis Tomlinson Concert - Scotiabank Arena</span>
+      <span class="ev-idx" style="color:#E74C3C">147</span>
+    </div><div class="event-row">
+      <span class="ev-date">2026-07-19</span>
+      <span class="ev-name">FIFA Fan Festival Concludes</span>
+      <span class="ev-idx" style="color:#E74C3C">147</span>
+    </div><div class="event-row">
+      <span class="ev-date">2026-07-21</span>
+      <span class="ev-name">Concert at Scotiabank Arena</span>
+      <span class="ev-idx" style="color:#E74C3C">146</span>
+    </div><div class="event-row">
+      <span class="ev-date">2026-07-25</span>
+      <span class="ev-name">Multi-day Concert at Scotiabank Arena</span>
+      <span class="ev-idx" style="color:#E74C3C">147</span>
+    </div>
+</div>
+
+<script>
+const dates = ["2026-06-27", "2026-06-28", "2026-06-29", "2026-06-30", "2026-07-01", "2026-07-02", "2026-07-03", "2026-07-04", "2026-07-05", "2026-07-06", "2026-07-07", "2026-07-08", "2026-07-09", "2026-07-10", "2026-07-11", "2026-07-12", "2026-07-13", "2026-07-14", "2026-07-15", "2026-07-16", "2026-07-17", "2026-07-18", "2026-07-19", "2026-07-20", "2026-07-21", "2026-07-22", "2026-07-23", "2026-07-24", "2026-07-25", "2026-07-26"];
+const demand = [150, 152, 153, 154, 155, 156, 156, 156, 156, 155, 155, 154, 153, 152, 151, 151, 150, 149, 148, 148, 147, 147, 147, 146, 146, 146, 147, 147, 147, 148];
+const lower  = [128, 128, 129, 131, 131, 132, 133, 129, 132, 132, 133, 129, 128, 128, 128, 125, 126, 125, 124, 124, 124, 123, 122, 123, 122, 122, 121, 123, 123, 123];
+const upper  = [174, 174, 180, 177, 181, 179, 181, 179, 179, 180, 179, 177, 176, 177, 176, 176, 173, 172, 170, 172, 172, 171, 170, 170, 170, 170, 170, 169, 170, 172];
+const colors = ["#E74C3C", "#E74C3C", "#E74C3C", "#E74C3C", "#E74C3C", "#E74C3C", "#E74C3C", "#E74C3C", "#E74C3C", "#E74C3C", "#E74C3C", "#E74C3C", "#E74C3C", "#E74C3C", "#E74C3C", "#E74C3C", "#E74C3C", "#E74C3C", "#E74C3C", "#E74C3C", "#E74C3C", "#E74C3C", "#E74C3C", "#E74C3C", "#E74C3C", "#E74C3C", "#E74C3C", "#E74C3C", "#E74C3C", "#E74C3C"];
+const evLabels = ["", "", "Raptors Play-In Home Game 1", "Raptors Play-In Home Game 2", "Rhythms of Canada Festival", "FIFA World Cup Match - Toronto", "Summerlicious Begins", "Lionel Richie & Earth, Wind & Fire Concert - Scotiabank Arena", "", "", "", "", "", "", "Festival of South Asia - Gerrard India Bazaar", "Festival of South Asia Continues", "", "", "", "", "Louis Tomlinson Concert - Scotiabank Arena", "", "FIFA Fan Festival Concludes", "", "Concert at Scotiabank Arena", "", "", "", "Multi-day Concert at Scotiabank Arena", ""];
+const cTrend   = [171.0, 171.0, 171.1, 171.2, 171.2, 171.3, 171.4, 171.4, 171.5, 171.6, 171.6, 171.7, 171.8, 171.8, 171.9, 172.0, 172.0, 172.1, 172.1, 172.2, 172.3, 172.3, 172.4, 172.5, 172.5, 172.6, 172.7, 172.7, 172.8, 172.9];
+const cWeekly  = [-0.0, 0.0, 0.1, 0.0, -0.0, -0.1, -0.0, -0.0, 0.0, 0.1, 0.0, -0.0, -0.1, -0.0, -0.0, 0.0, 0.1, 0.0, -0.0, -0.1, -0.0, -0.0, 0.0, 0.1, 0.0, -0.0, -0.1, -0.0, -0.0, 0.0];
+const cYearly  = [30.1, 31.7, 32.9, 33.9, 34.6, 35.1, 35.2, 35.1, 34.8, 34.4, 33.7, 33.0, 32.1, 31.2, 30.2, 29.3, 28.4, 27.5, 26.7, 26.1, 25.5, 25.0, 24.7, 24.5, 24.5, 24.5, 24.7, 24.9, 25.2, 25.5];
+const cTemp    = [-50.6, -50.6, -50.6, -50.6, -50.6, -50.6, -50.6, -50.6, -50.6, -50.6, -50.6, -50.6, -50.6, -50.6, -50.6, -50.6, -50.6, -50.6, -50.6, -50.6, -50.6, -50.6, -50.6, -50.6, -50.6, -50.6, -50.6, -50.6, -50.6, -50.6];
+const cRain    = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0];
+const cWeekend = [-0.0, -0.0, -0.0, -0.0, -0.0, -0.0, -0.0, -0.0, -0.0, -0.0, -0.0, -0.0, -0.0, -0.0, -0.0, -0.0, -0.0, -0.0, -0.0, -0.0, -0.0, -0.0, -0.0, -0.0, -0.0, -0.0, -0.0, -0.0, -0.0, -0.0];
+const cFriday  = [-0.0, -0.0, -0.0, -0.0, -0.0, -0.0, -0.0, -0.0, -0.0, -0.0, -0.0, -0.0, -0.0, -0.0, -0.0, -0.0, -0.0, -0.0, -0.0, -0.0, -0.0, -0.0, -0.0, -0.0, -0.0, -0.0, -0.0, -0.0, -0.0, -0.0];
+const cEvent   = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0];
+
+// ── Main chart ────────────────────────────────────────────────────────────────
+const mainCtx = document.getElementById('mainChart').getContext('2d');
+const borderColors = ["transparent", "transparent", "#F1C40F", "#F1C40F", "#F1C40F", "#F1C40F", "#F1C40F", "#F1C40F", "transparent", "transparent", "transparent", "transparent", "transparent", "transparent", "#F1C40F", "#F1C40F", "transparent", "transparent", "transparent", "transparent", "#F1C40F", "transparent", "#F1C40F", "transparent", "#F1C40F", "transparent", "transparent", "transparent", "#F1C40F", "transparent"];
+const borderWidths = [0, 0, 3, 3, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0, 3, 3, 0, 0, 0, 0, 3, 0, 3, 0, 3, 0, 0, 0, 3, 0];
+const eventScatter = [null, null, 157, 158, 159, 160, 160, 160, null, null, null, null, null, null, 155, 155, null, null, null, null, 151, null, 151, null, 150, null, null, null, 151, null];
+
+const mainChart = new Chart(mainCtx, {
+  data: {
+    labels: dates,
+    datasets: [
+      { type:'line', label:'Upper', data:upper, borderColor:'rgba(189,195,199,0.4)', backgroundColor:'rgba(189,195,199,0.12)', borderWidth:1, pointRadius:0, fill:'+1', tension:0.3, order:0 },
+      { type:'line', label:'Lower', data:lower, borderColor:'rgba(189,195,199,0.4)', fill:false, borderWidth:1, pointRadius:0, tension:0.3, order:0 },
+      { type:'bar',  label:'Demand Index', data:demand, backgroundColor:colors, borderColor:borderColors, borderWidth:borderWidths, borderRadius:4, borderSkipped:false, order:1 },
+      { type:'line', label:'Baseline (100)', data:Array(dates.length).fill(100), borderColor:'#95A5A6', borderWidth:1.5, borderDash:[5,4], pointRadius:0, fill:false, order:0 },
+      { type:'scatter', label:'Event', data:eventScatter.map((v,i)=>v!=null?{x:dates[i],y:v}:null).filter(Boolean),
+         pointStyle:'star', pointRadius:8, pointBackgroundColor:'#F1C40F', pointBorderColor:'#E67E22', pointBorderWidth:1, order:0 },
+    ]
+  },
+  options: {
+    responsive:true,
+    interaction:{mode:'index',intersect:false},
+    onClick(evt, elems) {
+      if (!elems.length) return;
+      const i = elems.find(e => e.datasetIndex === 2)?.index;
+      if (i == null) return;
+      showExplainer(i);
+    },
+    plugins:{
+      legend:{display:false},
+      tooltip:{callbacks:{afterBody:(items)=>{const i=items[0].dataIndex;return evLabels[i]?['','📅 '+evLabels[i]]:[];}}}
+    },
+    scales:{
+      x:{ticks:{maxRotation:45,font:{size:10}},grid:{display:false}},
+      y:{min:80,max:200,title:{display:true,text:'Demand Index',font:{size:11}},grid:{color:'#F5F5F5'}}
+    }
+  }
+});
+
+// ── Component chart ───────────────────────────────────────────────────────────
+const compCtx = document.getElementById('compChart').getContext('2d');
+new Chart(compCtx, {
+  type:'bar',
+  data:{
+    labels:dates,
+    datasets:[
+      { label:'Trend',      data:cTrend,   backgroundColor:'#3498DB', stack:'s' },
+      { label:'Day of week',data:cWeekly,  backgroundColor:'#2ECC71', stack:'s' },
+      { label:'Seasonality',data:cYearly,  backgroundColor:'#9B59B6', stack:'s' },
+      { label:'Temperature',data:cTemp,    backgroundColor:'#E67E22', stack:'s' },
+      { label:'Rain',       data:cRain,    backgroundColor:'#7F8C8D', stack:'s' },
+      { label:'Events',     data:cEvent,   backgroundColor:'#E74C3C', stack:'s' },
+    ]
+  },
+  options:{
+    responsive:true,
+    interaction:{mode:'index',intersect:false},
+    plugins:{legend:{display:false}},
+    scales:{
+      x:{ticks:{maxRotation:45,font:{size:10}},grid:{display:false},stacked:true},
+      y:{stacked:true,title:{display:true,text:'Index contribution',font:{size:11}},grid:{color:'#F5F5F5'}}
+    }
+  }
+});
+
+// ── Explainer panel ───────────────────────────────────────────────────────────
+function showExplainer(i) {
+  const panel = document.getElementById('explainer');
+  panel.classList.add('show');
+
+  const d = dates[i];
+  const v = demand[i];
+  document.getElementById('exp-title').textContent = d + '  —  Demand Index: ' + v;
+  const ev = evLabels[i] ? '📅 ' + evLabels[i] : '';
+  document.getElementById('exp-sub').textContent = ev || (v >= 130 ? 'High demand day' : v >= 110 ? 'Elevated demand' : 'Normal demand day');
+
+  const factors = [
+    { name:'Trend',       val:cTrend[i],   color:'#3498DB' },
+    { name:'Day of week', val:cWeekly[i],  color:'#2ECC71' },
+    { name:'Seasonality', val:cYearly[i],  color:'#9B59B6' },
+    { name:'Temperature', val:cTemp[i],    color:'#E67E22' },
+    { name:'Rain',        val:cRain[i],    color:'#7F8C8D' },
+    { name:'Events',      val:cEvent[i],   color:'#E74C3C' },
+  ].filter(f => Math.abs(f.val) > 0.5)
+   .sort((a,b) => Math.abs(b.val)-Math.abs(a.val));
+
+  const total = factors.reduce((s,f) => s + Math.abs(f.val), 0);
+  document.getElementById('exp-bars').innerHTML = factors.map(f => {
+    const pct = total > 0 ? Math.abs(f.val)/total*100 : 0;
+    const sign = f.val >= 0 ? '+' : '';
+    return `<div class="bar-row">
+      <div class="bar-label">${f.name}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${pct.toFixed(0)}%;background:${f.color}"></div></div>
+      <div class="bar-val">${sign}${f.val.toFixed(1)}</div>
+    </div>`;
+  }).join('');
+}
+</script>
+</body>
+</html>

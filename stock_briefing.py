@@ -10,11 +10,29 @@ cron, Windows Task Scheduler, or just manually each morning to start.
 """
 
 import json
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 import anthropic
 import pandas as pd
 import yfinance as yf
 
 client = anthropic.Anthropic()  # reads ANTHROPIC_API_KEY from environment
+
+EMAIL_FROM = "sauj.shrivastava@gmail.com"
+EMAIL_TO = "sauj.shrivastava@gmail.com"
+EMAIL_APP_PASSWORD = "hpog qohq ffml gsxs"
+
+
+def send_email(subject: str, body: str):
+    msg = MIMEMultipart("alternative")
+    msg["Subject"] = subject
+    msg["From"] = EMAIL_FROM
+    msg["To"] = EMAIL_TO
+    msg.attach(MIMEText(body, "plain"))
+    with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
+        server.login(EMAIL_FROM, EMAIL_APP_PASSWORD)
+        server.sendmail(EMAIL_FROM, EMAIL_TO, msg.as_string())
 
 WATCHLIST = ["AAPL", "MSFT", "NVDA"]  # fallback if mover fetch fails
 
@@ -120,7 +138,12 @@ def run_briefing(watchlist=None):
 
 
 if __name__ == "__main__":
+    from datetime import date
     print("Fetching top 5 S&P 500 movers...", flush=True)
     movers = get_top_movers(5)
     print(f"Analyzing: {', '.join(movers)}\n", flush=True)
-    print(run_briefing(movers))
+    briefing = run_briefing(movers)
+    print(briefing)
+    subject = f"Stock Briefing — {date.today().strftime('%b %d, %Y')}"
+    send_email(subject, briefing)
+    print("\nEmail sent.", flush=True)
